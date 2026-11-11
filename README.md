@@ -1,49 +1,49 @@
 # mcp-apps-host-dart
 
-> **English summary** — Host-side bridge for MCP Apps (`ui://` interactive views) for Dart and Flutter. Two packages: `mcp_apps_host` (pure Dart: handshake, queue until `initialized`, tool-call permission policy, spec default CSP, WebView `postMessage` shims) and `mcp_apps_host_flutter` (a thin `webview_flutter` widget, `McpAppView`). The official host SDK is TypeScript-only; this fills the Dart/Flutter gap. Status: 0.1.0, not on pub.dev yet, verified with fakes only (no real WebView in CI, see [Limits](#한계)). Install from git, see below.
+**English** | [한국어](README.ko.md)
 
-MCP 서버의 도구가 내려 주는 작은 HTML 화면(MCP Apps, `ui://` 리소스)을 Flutter 앱의 WebView 안에 띄울 때 필요한 호스트 쪽 일(인사, 대기열, 도구 호출 권한, CSP)을 대신해 주는 Dart 패키지입니다.
+Host-side bridge for MCP Apps (`ui://` interactive views) in Dart and Flutter. When a tool on an MCP server returns a small HTML view, your app (the host) has to do the work around it: the handshake, a queue, tool-call permissions and CSP. These packages do that work for you. `mcp_apps_host` is pure Dart (handshake, queue until `initialized`, tool-call permission policy, spec default CSP, WebView `postMessage` shims). `mcp_apps_host_flutter` is a thin `webview_flutter` widget, `McpAppView`. The official host SDK is TypeScript-only, so this fills the Dart/Flutter gap. Status: 0.1.0, not on pub.dev yet, verified with fakes only (no real WebView in CI, see [Limits](#limits)). Install from git, see below.
 
-![목 모드 실행 화면 앞부분: 대기열 보류 후 플러시](docs/images/01-mock-run-handshake.png)
+![First part of the mock-mode run: queue hold, then flush](docs/images/01-mock-run-handshake.png)
 
-*연습용 목 모드의 앞부분. 화면이 준비되기 전 알림 2건이 대기열에 머물다가 준비 신호 뒤에 순서대로 도착합니다.*
+*The first part of the practice mock mode. Two notifications wait in the queue until the view is ready, then arrive in order after the ready signal.*
 
-## 이게 뭔가요
+## What is this
 
-MCP 서버의 도구는 글자 대신 작은 HTML 화면을 돌려줄 수 있습니다. 이 화면을 내 앱의 WebView에 띄우려면 앱(호스트) 쪽이 해야 할 일이 많습니다. 화면과 인사(`ui/initialize`)를 나누고, 준비되기 전에는 아무것도 보내지 않고, 화면이 요청한 도구 호출을 걸러 내고, 접근 범위(CSP)를 조이는 일입니다.
+A tool on an MCP server can return a small HTML view instead of text. To show that view in your app's WebView, the app (the host) has a lot to do. It must separate the view from the handshake (`ui/initialize`), send nothing until the view is ready, filter the tool calls the view asks for, and tighten the access scope (CSP).
 
-비유하면 **유리 진열장과 관리인**입니다. 화면은 진열장 안의 물건이고 호스트는 관리인입니다. 물건이 직접 창고(도구)에 손대지 못하게 하고, 꼭 필요한 요청만 관리인이 확인한 뒤 대신 전달합니다. 이 라이브러리가 관리인 역할을 맡습니다.
+Think of a **glass display case and an attendant**. The view is the item in the case and the host is the attendant. The item cannot touch the warehouse (the tools) directly. The attendant checks each request and passes on only the ones that are needed. This library plays the attendant.
 
-공식 호스트 SDK(`@modelcontextprotocol/ext-apps`)는 TypeScript와 브라우저용입니다. Dart에는 화면(View) 쪽 패키지와 메타데이터 도우미(`mcp_dart`)만 있고 호스트 브리지는 없었습니다(2026-11-10 확인).
+The official host SDK (`@modelcontextprotocol/ext-apps`) is for TypeScript and browsers. For Dart there were only a view-side package and a metadata helper (`mcp_dart`), and no host bridge (checked 2026-11-10).
 
-| 패키지 | 내용 |
+| Package | Contents |
 |---|---|
-| `packages/mcp_apps_host` | 순수 Dart. `HostBridge`, `ToolCallPolicy`, `CspBuilder`, `HtmlInjector`, `BridgeScripts`, 테스트 도우미 |
-| `packages/mcp_apps_host_flutter` | `McpAppView` 위젯, `WebViewViewTransport`, `hostContextOf`, `showToolApprovalDialog` |
+| `packages/mcp_apps_host` | Pure Dart. `HostBridge`, `ToolCallPolicy`, `CspBuilder`, `HtmlInjector`, `BridgeScripts`, test helpers |
+| `packages/mcp_apps_host_flutter` | `McpAppView` widget, `WebViewViewTransport`, `hostContextOf`, `showToolApprovalDialog` |
 
-## 설치
+## Install
 
-아직 pub.dev에 올라가 있지 않아 git으로 설치합니다. 어댑터가 코어를 pub.dev 버전(`^0.1.0`)으로 요구하므로, git으로 쓰는 동안에는 `dependency_overrides`로 코어 출처를 같게 맞춰야 합니다.
+It is not on pub.dev yet, so install it from git. The adapter requires the core at the pub.dev version (`^0.1.0`), so while you use git you must point the core at the same source with `dependency_overrides`.
 
 ```yaml
 dependencies:
   mcp_apps_host:
     git: {url: https://github.com/LeeGyeongPil/mcp-apps-host-dart, path: packages/mcp_apps_host}
-  mcp_apps_host_flutter:        # Flutter 앱일 때만
+  mcp_apps_host_flutter:        # only for Flutter apps
     git: {url: https://github.com/LeeGyeongPil/mcp-apps-host-dart, path: packages/mcp_apps_host_flutter}
 
-dependency_overrides:           # pub.dev 게시 전까지만 필요
+dependency_overrides:           # only needed until it is published to pub.dev
   mcp_apps_host:
     git: {url: https://github.com/LeeGyeongPil/mcp-apps-host-dart, path: packages/mcp_apps_host}
 ```
 
-코어만 쓰면 `mcp_apps_host` 항목 하나로 충분하고 오버라이드는 필요 없습니다. 같은 구조(경로 의존 + 오버라이드)로 `flutter pub get`이 성공하는 것은 확인했지만, 이 레포가 공개되기 전이라 git 주소 형태는 직접 확인하지 못했습니다.
+If you only use the core, the single `mcp_apps_host` entry is enough and no override is needed. `flutter pub get` succeeds with the same structure (path dependency plus override). The git URL form could not be checked directly because this repo was not public yet.
 
-필요한 것: Dart 3.4 이상(코어), Flutter 3.32 이상과 Dart 3.8 이상(어댑터). 코어의 런타임 의존성은 `mcp_dart` 하나입니다. SDK 설치: https://docs.flutter.dev/get-started/install (Flutter에 Dart가 들어 있습니다).
+Requirements: Dart 3.4 or newer (core), Flutter 3.32 or newer and Dart 3.8 or newer (adapter). The core's only runtime dependency is `mcp_dart`. SDK install: https://docs.flutter.dev/get-started/install (Flutter includes Dart).
 
-## 빠르게 시작하기
+## Quick start
 
-가짜 서버·가짜 화면(`testing.dart`)으로 브리지를 직접 만져 봅니다. 파일은 [`packages/mcp_apps_host/example/quickstart.dart`](packages/mcp_apps_host/example/quickstart.dart)이고 그대로 실행됩니다.
+Play with the bridge directly using a fake server and a fake view (`testing.dart`). The file is [`packages/mcp_apps_host/example/quickstart.dart`](packages/mcp_apps_host/example/quickstart.dart) and it runs as is.
 
 ```bash
 cd packages/mcp_apps_host && dart pub get && dart run example/quickstart.dart
@@ -58,7 +58,7 @@ final bridge = HostBridge(
   hostContext: const HostContext(theme: 'dark', platform: 'desktop'),
 );
 final view = ScriptedView(pipe.viewSide);
-bridge.sendToolInput({'city': 'Seoul'}); // 화면이 준비될 때까지 대기열에 머묾
+bridge.sendToolInput({'city': 'Seoul'}); // stays in the queue until the view is ready
 ```
 
 ```text
@@ -67,17 +67,17 @@ View received: ui/notifications/tool-input
 delete_all -> Tool call refused: tool is not visible to apps (delete_all)
 ```
 
-(위 코드는 파일의 앞부분입니다. 나머지는 파일에 있습니다.) 마지막 줄은 모델 전용 도구 `delete_all`을 화면이 부르려 하자 서버에 닿기 전에 거부된 결과입니다.
+(The code above is the first part of the file. The rest is in the file.) The last line shows the result when the view tried to call the model-only tool `delete_all`: it was refused before it reached the server.
 
-## 5분 체험 (연습용 목 모드)
+## Five-minute trial (practice mock mode)
 
-화면과 MCP 서버만 가짜(`ScriptedView`, `FakeMcpServer`)이고, 브리지·정책·CSP 코드는 실제 코드입니다. 키도 네트워크도 필요 없습니다. 실제 모드(실제 MCP 서버 연결)와 다른 점은 이 두 가짜뿐입니다.
+Only the view and the MCP server are fake (`ScriptedView`, `FakeMcpServer`). The bridge, policy and CSP code are real. No key or network is needed. These two fakes are the only difference from real mode (connecting to a real MCP server).
 
 ```bash
 cd packages/mcp_apps_host && dart pub get && dart run example/mcp_apps_host_example.dart
 ```
 
-실제 출력(Dart 3.8.1):
+Real output (Dart 3.8.1):
 
 ```text
 [mock] practice mode: the View and the MCP server are fakes; HostBridge, ToolCallPolicy, CspBuilder and HtmlInjector are real.
@@ -99,199 +99,199 @@ cd packages/mcp_apps_host && dart pub get && dart run example/mcp_apps_host_exam
 [teardown] state=closed
 ```
 
-![목 모드 실행 화면 뒷부분: 권한 판정과 감사 로그](docs/images/02-mock-run-permissions.png)
+![Second part of the mock-mode run: permission decisions and audit log](docs/images/02-mock-run-permissions.png)
 
-*같은 출력의 뒷부분. 도구 3번 호출에 승인 1번, 모델 전용 도구와 `javascript:` 링크는 거부, 5건의 판정이 감사 로그에 남습니다.*
+*The second part of the same output. Three tool calls cost one approval, the model-only tool and the `javascript:` link are refused, and five decisions land in the audit log.*
 
-읽는 법:
+How to read it:
 
-- `held 2` → 화면이 준비되기 전 호스트가 보낸 알림 2건은 대기열에 머물고, 준비 신호(`initialized`) 뒤에 순서대로 도착합니다.
-- `asked 1 time(s) for 3 call(s)` → 같은 도구를 3번 불러도 사용자에게는 1번만 묻습니다(`perToolPerSession`).
-- `delete_all` 거부 → 모델 전용 도구는 서버에 닿기 전에 거부됩니다.
-- `[csp]` → 스펙 기본 CSP. 서버가 선언한 도메인(`connect-src`)만 더해집니다.
+- `held 2` → the two notifications the host sent before the view was ready wait in the queue and arrive in order after the ready signal (`initialized`).
+- `asked 1 time(s) for 3 call(s)` → calling the same tool three times asks the user only once (`perToolPerSession`).
+- `delete_all` refused → a model-only tool is refused before it reaches the server.
+- `[csp]` → the spec default CSP. Only the domains the server declared (`connect-src`) are added.
 
-`--print-html`을 붙이면 CSP와 브리지 스크립트가 `<head>` 맨 앞에 들어간 HTML만 출력합니다.
+Add `--print-html` to print only the HTML, with the CSP and the bridge script placed at the very start of `<head>`.
 
 ```bash
 dart run example/mcp_apps_host_example.dart --print-html
 ```
 
-![준비된 HTML의 head: CSP meta와 shim이 문서 스크립트보다 앞에 있음](docs/images/03-print-html.png)
+![Prepared HTML head: the CSP meta and shim come before the document scripts](docs/images/03-print-html.png)
 
-*CSP `<meta>`와 브리지 스크립트가 화면 문서의 스크립트보다 앞에 놓입니다. 그래야 화면 스크립트가 실행되기 전에 제한이 걸립니다.*
+*The CSP `<meta>` and the bridge script come before the view document's own scripts. That way the restrictions apply before the view's scripts run.*
 
-## 핵심 개념
+## Core concepts
 
-1. **ViewTransport**: 화면과 주고받는 문자열 통로(`Stream<String> incoming`, `void send(String)`). WebView 종류를 이 인터페이스 뒤로 숨겨, 코어는 WebView 없이 테스트됩니다.
-2. **HostBridge**: 한 화면을 담당하는 관리인. 인사에 답하고, 준비 전 알림을 대기열에 쌓고, 도구 호출을 정책에 물어본 뒤 서버에 전달합니다.
-3. **ToolCallPolicy**: 도구 호출 판정. 두 층입니다. (1) 도구의 `visibility`에 `app`이 없으면 무조건 거부(스펙의 MUST), (2) 그 위에 사용자 승인(선택). 승인 모드인데 승인 함수가 없으면 만들 때 오류를 냅니다(fail closed).
-4. **CSP**: 화면이 닿을 수 있는 곳의 제한. 기본값에서 더 조일 수는 있어도 풀지는 않습니다.
+1. **ViewTransport**: the string channel to and from the view (`Stream<String> incoming`, `void send(String)`). It hides the WebView type behind this interface, so the core is tested without a WebView.
+2. **HostBridge**: the attendant for one view. It answers the handshake, queues notifications that arrive before the view is ready, asks the policy about each tool call, then forwards allowed ones to the server.
+3. **ToolCallPolicy**: the verdict on tool calls, in two layers. (1) If the tool's `visibility` does not include `app`, the call is always refused (a MUST in the spec). (2) On top of that, user approval (optional). If the mode needs approval but no approver function is given, construction throws an error (fail closed).
+4. **CSP**: the limit on where the view can reach. You can tighten the default but never loosen it.
 
-## 동작 흐름
+## Flow
 
 ```mermaid
 sequenceDiagram
-    participant S as MCP 서버
+    participant S as MCP server
     participant H as HostBridge
-    participant V as 화면(WebView)
-    H->>H: sendToolInput(...) → 대기열
+    participant V as View (WebView)
+    H->>H: sendToolInput(...) → queue
     V->>H: ui/initialize
-    H-->>V: 결과(프로토콜 버전, 호스트 기능, 컨텍스트)
+    H-->>V: result (protocol version, host capabilities, context)
     V->>H: ui/notifications/initialized
-    H->>V: 대기열 플러시(순서대로)
+    H->>V: flush queue (in order)
     V->>H: tools/call
-    H->>H: ToolCallPolicy 판정(visibility → 승인)
-    H->>S: 허용된 호출만 전달
-    S-->>H: 결과
-    H-->>V: 결과
+    H->>H: ToolCallPolicy verdict (visibility → approval)
+    H->>S: forward allowed calls only
+    S-->>H: result
+    H-->>V: result
     H->>V: ui/resource-teardown
-    V-->>H: 응답 후 닫힘
+    V-->>H: closed after reply
 ```
 
-그림 풀이: 호스트는 인사 전에 쌓아 두고, 화면이 준비되면 쏟아내며, 화면의 도구 요청은 정책을 통과한 것만 서버로 갑니다. 마지막에 호스트가 정리 요청을 보내고 화면의 응답을 기다립니다.
+Reading the diagram: the host holds notifications until the handshake, releases them when the view is ready, and only tool requests that pass the policy go on to the server. At the end the host sends a teardown request and waits for the view's reply.
 
-호스트가 다루는 메서드(이름은 `UiMethods`에 있고 `UiMethods.all`이 17개입니다):
+The methods the host handles (the names are in `UiMethods`, and `UiMethods.all` has 17):
 
-| 방향 | 메서드 | 처리 |
+| Direction | Method | Handling |
 |---|---|---|
-| 화면 → 호스트 | `ui/initialize` | 프로토콜 버전·호스트 기능·컨텍스트로 응답 |
-| 화면 → 호스트 | `tools/call`, `resources/read` | 정책 통과 후 서버에 전달 / 서버에서 읽기 |
-| 화면 → 호스트 | `ui/open-link`, `ui/message`, `ui/request-display-mode`, `ui/update-model-context` | 앱이 준 핸들러가 있을 때만 광고·처리, 없으면 `-32601` |
-| 화면 → 호스트 | `ui/notifications/initialized`, `size-changed` | 대기열 플러시 / 높이 콜백 |
-| 호스트 → 화면 | `tool-input`, `tool-input-partial`, `tool-result`, `tool-cancelled`, `host-context-changed` | 준비 전에는 대기열(상한 256, 넘으면 오래된 것부터 버리고 감사 기록) |
-| 호스트 → 화면 | `ui/resource-teardown` | 응답을 기다린 뒤 닫음 |
-| 초안·프록시용 | `ui/download-file`, `ui/notifications/request-teardown`, `sandbox-proxy-ready`, `sandbox-resource-ready` | 지원하지 않음 |
+| View → host | `ui/initialize` | Reply with protocol version, host capabilities and context |
+| View → host | `tools/call`, `resources/read` | Forward to the server after the policy / read from the server |
+| View → host | `ui/open-link`, `ui/message`, `ui/request-display-mode`, `ui/update-model-context` | Advertised and handled only when the app gave a handler, otherwise `-32601` |
+| View → host | `ui/notifications/initialized`, `size-changed` | Flush the queue / height callback |
+| Host → view | `tool-input`, `tool-input-partial`, `tool-result`, `tool-cancelled`, `host-context-changed` | Queued until ready (limit 256; when full, the oldest are dropped and recorded in the audit) |
+| Host → view | `ui/resource-teardown` | Wait for the reply, then close |
+| Draft / proxy only | `ui/download-file`, `ui/notifications/request-teardown`, `sandbox-proxy-ready`, `sandbox-resource-ready` | Not supported |
 
 ## API
 
-코어 `package:mcp_apps_host/mcp_apps_host.dart`:
+Core `package:mcp_apps_host/mcp_apps_host.dart`:
 
-| 이름 | 하는 일 | 주요 인자 | 반환 |
+| Name | What it does | Main arguments | Returns |
 |---|---|---|---|
-| `HostBridge` | 화면 하나의 호스트 쪽 | `transport`, `server`, `hostInfo`, `hostContext`, `policy`, `onOpenLink`·`onMessage`·`onRequestDisplayMode`·`onUpdateModelContext`·`onSizeChanged`·`onLog`, `maxQueued`(256), `maxAuditEntries`(1000) | 인스턴스. `state`, `stateChanges`, `audit`, `queuedCount`, `hostCapabilities` |
-| `HostBridge.sendToolInput` / `sendToolInputPartial` / `sendToolResult` / `sendToolCancelled` | 화면에 알림 보내기(준비 전이면 대기열) | 인자 맵 / 결과 맵 / 이유 | `void`. 닫힌 뒤에는 `BridgeClosedException` |
-| `HostBridge.updateHostContext` | 테마·크기 등 컨텍스트 변경 알림 | 바뀐 항목 맵 | `void` |
-| `HostBridge.teardown` / `close` | 정리 요청 후 응답 대기 / 즉시 닫기 | `reason`, `timeout` | `Future<void>` |
-| `ToolCallPolicy` | 도구 호출 판정 | `mode`(`ApprovalMode`), `approver`, `allow`, `deny` | `evaluate(...)` → `PolicyVerdict`, `resetSession()` |
-| `ApprovalMode` | 승인 방식 | `never`, `perCall`, `perToolPerSession`, `perSession` | enum |
-| `ToolApprovalRequest`, `ToolApprover` | 승인 요청(도구 이름·인자)과 승인 함수 | | `Future<bool>` |
-| `CspBuilder.build` / `isValidDomain` | 스펙 기본 CSP 문자열 만들기 / 선언 도메인 검사 | `UiCsp?` | `String` / `bool` |
-| `HtmlInjector.prepare` | `<head>` 맨 앞에 CSP meta와 shim 삽입 | `html`, `csp`, `shim` | `String` |
-| `BridgeScripts.shim` / `dispatch` | WebView용 `postMessage` shim / 호스트→화면 전달 스크립트 | `channel`(기본 `mcpBridge`) / JSON 문자열 | `String`(JS) |
-| `ViewTransport` | 화면과의 통로 인터페이스 | | `incoming`, `send` |
-| `McpServerAdapter` | 서버 연결 인터페이스 | | `listTools`, `callTool`, `readResource` |
-| `McpAppsRpcException` | 화면에 JSON-RPC 오류로 전달되는 예외 | `code`, `message` | |
-| `UiToolMeta`, `UiResourceMeta` | `_meta.ui`(옛 키 `ui/resourceUri` 포함) 읽기 | 도구 / 리소스 맵 | `resourceUri`, `visibleToApp`, `csp` 등 |
-| `HostInfo`, `HostContext`, `UiCsp`, `ViewSize`, `AuditEntry`, `LogEntry` | 값 타입 | | |
+| `HostBridge` | The host side of one view | `transport`, `server`, `hostInfo`, `hostContext`, `policy`, `onOpenLink`, `onMessage`, `onRequestDisplayMode`, `onUpdateModelContext`, `onSizeChanged`, `onLog`, `maxQueued` (256), `maxAuditEntries` (1000) | Instance. `state`, `stateChanges`, `audit`, `queuedCount`, `hostCapabilities` |
+| `HostBridge.sendToolInput` / `sendToolInputPartial` / `sendToolResult` / `sendToolCancelled` | Send a notification to the view (queued if not ready) | Argument map / result map / reason | `void`. `BridgeClosedException` after close |
+| `HostBridge.updateHostContext` | Notify of a context change such as theme or size | Map of changed items | `void` |
+| `HostBridge.teardown` / `close` | Request teardown and wait for the reply / close at once | `reason`, `timeout` | `Future<void>` |
+| `ToolCallPolicy` | Verdict on a tool call | `mode` (`ApprovalMode`), `approver`, `allow`, `deny` | `evaluate(...)` → `PolicyVerdict`, `resetSession()` |
+| `ApprovalMode` | Approval style | `never`, `perCall`, `perToolPerSession`, `perSession` | enum |
+| `ToolApprovalRequest`, `ToolApprover` | The approval request (tool name, arguments) and the approver function | | `Future<bool>` |
+| `CspBuilder.build` / `isValidDomain` | Build the spec default CSP string / check a declared domain | `UiCsp?` | `String` / `bool` |
+| `HtmlInjector.prepare` | Insert the CSP meta and shim at the very start of `<head>` | `html`, `csp`, `shim` | `String` |
+| `BridgeScripts.shim` / `dispatch` | `postMessage` shim for the WebView / script that delivers host → view messages | `channel` (default `mcpBridge`) / JSON string | `String` (JS) |
+| `ViewTransport` | Interface for the channel to the view | | `incoming`, `send` |
+| `McpServerAdapter` | Interface for the server connection | | `listTools`, `callTool`, `readResource` |
+| `McpAppsRpcException` | Exception passed to the view as a JSON-RPC error | `code`, `message` | |
+| `UiToolMeta`, `UiResourceMeta` | Read `_meta.ui` (including the old key `ui/resourceUri`) | Tool / resource map | `resourceUri`, `visibleToApp`, `csp`, etc. |
+| `HostInfo`, `HostContext`, `UiCsp`, `ViewSize`, `AuditEntry`, `LogEntry` | Value types | | |
 
-`package:mcp_apps_host/mcp_dart.dart`의 `McpDartServerAdapter(client)`는 `mcp_dart` 클라이언트를 `McpServerAdapter`로 감쌉니다. `package:mcp_apps_host/testing.dart`는 `MemoryPipe`, `ScriptedView`, `FakeMcpServer`를 줍니다.
+`McpDartServerAdapter(client)` in `package:mcp_apps_host/mcp_dart.dart` wraps an `mcp_dart` client as an `McpServerAdapter`. `package:mcp_apps_host/testing.dart` gives you `MemoryPipe`, `ScriptedView` and `FakeMcpServer`.
 
-Flutter 어댑터 `package:mcp_apps_host_flutter/mcp_apps_host_flutter.dart`:
+Flutter adapter `package:mcp_apps_host_flutter/mcp_apps_host_flutter.dart`:
 
-| 이름 | 하는 일 | 주요 인자 | 반환 |
+| Name | What it does | Main arguments | Returns |
 |---|---|---|---|
-| `McpAppView` | WebView 위젯. 브리지·CSP·이동 잠금을 묶음 | `server`, `html`, `hostInfo`, `csp`, `policy`, 핸들러들, `onBridgeReady`, `initialHeight`(300), `maxHeight`(800), `baseUrl`, `controller` | 위젯 |
-| `WebViewViewTransport` | `webview_flutter`용 `ViewTransport` | `controller`, `channel` | 인스턴스 |
-| `hostContextOf` | 테마·플랫폼·안전 영역·언어를 `MediaQuery`에서 읽어 `HostContext` 생성 | `BuildContext`, `maxHeight` | `HostContext` |
-| `showToolApprovalDialog` / `ToolApprovalDialog` | 기본 승인 대화상자(도구 이름·인자) | `BuildContext`, `ToolApprovalRequest` | `Future<bool>` |
+| `McpAppView` | WebView widget. Ties together the bridge, CSP and navigation lock | `server`, `html`, `hostInfo`, `csp`, `policy`, handlers, `onBridgeReady`, `initialHeight` (300), `maxHeight` (800), `baseUrl`, `controller` | Widget |
+| `WebViewViewTransport` | `ViewTransport` for `webview_flutter` | `controller`, `channel` | Instance |
+| `hostContextOf` | Build a `HostContext` from `MediaQuery` (theme, platform, safe area, locale) | `BuildContext`, `maxHeight` | `HostContext` |
+| `showToolApprovalDialog` / `ToolApprovalDialog` | Default approval dialog (tool name, arguments) | `BuildContext`, `ToolApprovalRequest` | `Future<bool>` |
 
-## 사용 예
+## Usage examples
 
-### 1. Flutter 앱에 붙이기
+### 1. Add it to a Flutter app
 
 ```dart
 McpAppView(
-  server: serverAdapter,   // McpServerAdapter. mcp_dart 클라이언트는 McpDartServerAdapter(client)
-  html: resourceText,      // ui:// 리소스의 HTML 텍스트
-  csp: resourceMeta.csp,   // _meta.ui.csp 선언(없으면 null)
+  server: serverAdapter,   // McpServerAdapter. For an mcp_dart client use McpDartServerAdapter(client)
+  html: resourceText,      // HTML text of the ui:// resource
+  csp: resourceMeta.csp,   // the _meta.ui.csp declaration (null if none)
   hostInfo: const HostInfo(name: 'my-app', version: '1.0.0'),
   policy: ToolCallPolicy(
     mode: ApprovalMode.perToolPerSession,
     approver: (r) => showToolApprovalDialog(context, r),
   ),
   onOpenLink: (url) async => openInBrowser(url),
-  onBridgeReady: (bridge) => bridge.sendToolInput(args), // 준비 전이면 대기열에 쌓입니다
+  onBridgeReady: (bridge) => bridge.sendToolInput(args), // queued if the view is not ready yet
 )
 ```
 
-(이 조각은 위젯 테스트 `mcp_app_view_test.dart`가 같은 방식으로 실행합니다. 실제 WebView에서의 렌더링은 확인하지 않았습니다. [한계](#한계) 참고.)
+(The widget test `mcp_app_view_test.dart` runs this snippet in the same way. Rendering in a real WebView has not been checked. See [Limits](#limits).)
 
-승인 모드: `never`(묻지 않음, 목록·visibility는 계속 적용), `perCall`(매번), `perToolPerSession`(도구마다 한 번), `perSession`(한 번). visibility 검사는 스펙의 MUST라 항상 적용되고, 사용자 승인은 그 위에 얹는 선택 층입니다. 동시에 도착한 호출은 질문 하나를 공유하고, 승인만 기억합니다. 거부는 기억하지 않아 다음 호출에서 다시 묻습니다.
+Approval modes: `never` (never ask; the list and visibility still apply), `perCall` (every call), `perToolPerSession` (once per tool), `perSession` (once). The visibility check is a MUST in the spec, so it always applies, and user approval is an optional layer on top. Calls that arrive at the same time share one question, and only approvals are remembered. Refusals are not remembered, so the next call asks again.
 
-화면을 떼기 전에는 `onBridgeReady`로 받은 `bridge.teardown`을 먼저 부르고, html·server·csp·policy를 바꾸려면 새 `key`를 주세요.
+Before you remove the view, call `bridge.teardown` (received through `onBridgeReady`) first. To change html, server, csp or policy, give it a new `key`.
 
-#### 예제 앱 실행
+#### Run the example app
 
-`packages/mcp_apps_host_flutter/example/`에 예제 앱이 있습니다. 플랫폼 폴더를 만든 뒤 실행합니다.
+There is an example app in `packages/mcp_apps_host_flutter/example/`. Create the platform folders, then run it.
 
 ```bash
 cd packages/mcp_apps_host_flutter/example && flutter create --platforms=macos,ios,android .
 flutter run -d macos
 ```
 
-- `flutter create`가 만드는 기본 `test/widget_test.dart`는 이 예제와 맞지 않아 `flutter analyze`가 오류를 냅니다. 지우고(`rm test/widget_test.dart`) 쓰세요.
-- macOS에서 실행하려면 Xcode와 CocoaPods가 설치돼 있어야 합니다(`brew install cocoapods`).
+- The default `test/widget_test.dart` that `flutter create` makes does not match this example, and `flutter analyze` reports an error. Delete it (`rm test/widget_test.dart`) before use.
+- To run on macOS you need Xcode and CocoaPods (`brew install cocoapods`).
 
-실기기·실제 WebView에서는 확인하지 못했습니다([한계](#한계)).
+It has not been checked on a real device or a real WebView ([Limits](#limits)).
 
-### 2. 다른 WebView 패키지와 쓰기
+### 2. Use it with another WebView package
 
-`mcp_apps_host`만 의존하고 `ViewTransport`(`Stream<String> incoming`, `void send(String)`)를 직접 구현합니다. `BridgeScripts.shim()`과 `HtmlInjector.prepare(...)`로 HTML을 준비하고, 받은 메시지는 `BridgeScripts.dispatch(json)`으로 화면에 전달합니다. 테스트에서는 `package:mcp_apps_host/testing.dart`의 `MemoryPipe`, `ScriptedView`, `FakeMcpServer`를 씁니다. 위 "빠르게 시작하기"가 그 구성입니다.
+Depend only on `mcp_apps_host` and implement `ViewTransport` (`Stream<String> incoming`, `void send(String)`) yourself. Prepare the HTML with `BridgeScripts.shim()` and `HtmlInjector.prepare(...)`, and pass received messages to the view with `BridgeScripts.dispatch(json)`. In tests, use `MemoryPipe`, `ScriptedView` and `FakeMcpServer` from `package:mcp_apps_host/testing.dart`. "Quick start" above is that setup.
 
-### 3. 실제 서버에 붙여 보기 (선택)
+### 3. Try it against a real server (optional)
 
-로컬에서 MCP 서버를 띄운 뒤 `<port>`를 채워 실행합니다.
+Start an MCP server locally, fill in `<port>`, and run:
 
 ```bash
 dart run example/mcp_apps_host_example.dart --server http://localhost:<port>/mcp
 ```
 
-앱 도구 목록, 리소스 선언으로 만든 CSP를 보여 주고 대본 화면으로 도구 하나를 위임 호출합니다. 연결에 실패하면 종료 코드 2입니다. **이 경로는 자동 테스트에 없고, 이 레포 작성 시점에 실제 서버로 확인하지 못했습니다.** 실제 서버는 네트워크·응답 속도 등 환경에 따라 느리거나 달라질 수 있습니다.
+It shows the app tool list and the CSP built from the resource declaration, then delegates one tool call using a scripted view. If the connection fails, the exit code is 2. **This path is not in the automated tests, and it could not be checked against a real server when this repo was written.** A real server may be slow or behave differently depending on the network and response time.
 
-## WebView 호스트 함정과 대응
+## WebView host pitfalls and how they are handled
 
-예를 들어 WebView 최상위에서는 `window.parent === window`라서, 메시지에 `event.source`를 넣지 않으면 화면 쪽 SDK가 그 메시지를 버립니다. 이런 함정 8가지와 대응하는 테스트 이름이 [docs/pitfalls.md](docs/pitfalls.md)에 표로 있습니다(자기 메아리, `initialized` 전 송신 금지, sandbox 속성 없음·`<meta>` CSP 한계, 옛 메타 키, 앱 전용 도구 노출, 승인 카드 폭증, CSP 도메인 끼워넣기).
+For example, at the top level of a WebView `window.parent === window`, so if a message does not carry `event.source`, the view-side SDK drops it. A table of 8 such pitfalls and the matching test names is in [docs/pitfalls.md](docs/pitfalls.md) (self-echo, no sending before `initialized`, no sandbox attribute and the `<meta>` CSP limits, old meta keys, app-only tool exposure, approval card flood, CSP domain injection).
 
-## 언제 쓰나
+## When to use it
 
-- 이럴 때: Flutter(모바일·데스크톱) MCP 클라이언트에서 `ui://` 화면을 띄워야 하고, 핸드셰이크·권한·CSP를 직접 짜고 싶지 않을 때. WebView 패키지를 다른 것으로 쓰면 코어(`mcp_apps_host`)만 가져가 `ViewTransport`를 구현합니다.
-- 이럴 땐 다른 도구: 브라우저(웹) 호스트 → 공식 [`@modelcontextprotocol/ext-apps`](https://github.com/modelcontextprotocol/ext-apps)의 호스트 쪽 도우미, `ui://` 화면(View) 만들기 → 같은 저장소의 View 쪽 SDK.
+- Use it when: a Flutter (mobile or desktop) MCP client must show `ui://` views and you do not want to write the handshake, permissions and CSP yourself. If you use a different WebView package, take only the core (`mcp_apps_host`) and implement `ViewTransport`.
+- Use something else when: for a browser (web) host, use the host-side helpers of the official [`@modelcontextprotocol/ext-apps`](https://github.com/modelcontextprotocol/ext-apps). To build `ui://` views (View), use the View-side SDK from the same repository.
 
-## 한계
+## Limits
 
-- **실제 WebView 렌더링은 CI에서 검증하지 않습니다.** 가짜 `WebViewPlatform`으로 하는 위젯 테스트까지입니다. 수동 점검표: [docs/manual-check.md](docs/manual-check.md). 위의 `McpAppView` 사용 예와 어댑터의 화면 동작(높이 조절, 링크 차단 등)은 실기기에서 확인되지 않았습니다.
-- **`--server` 실제 모드는 자동 테스트에도, 이 레포 작성 시점의 수동 확인에도 없습니다.**
-- WebView에는 iframe `sandbox`와 불투명 origin이 없어 브라우저 호스트보다 격리가 약합니다. `<meta>` CSP는 `frame-ancestors`, `sandbox`를 지원하지 않습니다. 이 라이브러리는 "스펙이 요구하는 최소 정책을 적용"할 뿐 "안전하다"고 보장하지 않습니다.
-- 초안 메서드(`ui/download-file`, `request-teardown`)는 지원하지 않습니다(`-32601` 또는 감사 로그만).
-- Windows, Linux, Flutter 웹은 지원하지 않습니다. 웹 호스트용 이중 iframe 프록시도 없습니다.
-- 승인 대기(`approver` 질문이 떠 있는) 상태의 경계 사례 세 가지는 알려진 한계입니다. (1) `approver` 콜백이 동기 예외를 던지면 그 호출의 대기 항목이 내부 대기 맵에 남을 수 있습니다. (2) 승인을 기다리는 중 `resetSession`을 부르면 대기 중인 질문 결과가 새 세션에 어떻게 반영되는지 정의가 느슨합니다. (3) 승인을 기다리는 중 `teardown`이 끝난 뒤 사용자가 허용하면 `callTool`이 그대로 실행될 수 있습니다. 앱 쪽에서는 화면을 떼기 전에 승인 창을 닫고, `approver`는 예외를 던지지 않게 감싸 두세요.
-- 확인한 버전: Dart 3.8.1, Flutter 3.32.4, webview_flutter 4.13.1, mcp_dart 2.4.3 (webview_flutter 4.14.x는 Flutter 3.38 이상이 필요합니다).
+- **Real WebView rendering is not verified in CI.** Only widget tests with a fake `WebViewPlatform`. Manual checklist: [docs/manual-check.md](docs/manual-check.md). The `McpAppView` example above and the adapter's view behavior (height adjustment, link blocking, etc.) have not been checked on a real device.
+- **The real `--server` mode is in neither the automated tests nor a manual check when this repo was written.**
+- A WebView has no iframe `sandbox` and no opaque origin, so isolation is weaker than in a browser host. A `<meta>` CSP does not support `frame-ancestors` or `sandbox`. This library only "applies the minimum policy the spec requires" and does not guarantee "safe".
+- Draft methods (`ui/download-file`, `request-teardown`) are not supported (`-32601` or an audit log entry only).
+- Windows, Linux and Flutter web are not supported. There is no double-iframe proxy for web hosts either.
+- Three edge cases while an approval is pending (an `approver` question is open) are known limits. (1) If the `approver` callback throws synchronously, that call's pending entry may stay in the internal pending map. (2) If you call `resetSession` while waiting for approval, how the pending question's result applies to the new session is loosely defined. (3) If the user allows after `teardown` has finished while waiting for approval, `callTool` may still run. In your app, close the approval dialog before removing the view, and wrap `approver` so it never throws.
+- Versions checked: Dart 3.8.1, Flutter 3.32.4, webview_flutter 4.13.1, mcp_dart 2.4.3 (webview_flutter 4.14.x needs Flutter 3.38 or newer).
 
-## 버전·호환성
+## Versions and compatibility
 
-- 유의적 버전(SemVer)을 따릅니다. 0.x 동안은 마이너 버전에서 API가 바뀔 수 있고, 바뀌면 각 패키지의 `CHANGELOG.md`([코어](packages/mcp_apps_host/CHANGELOG.md), [어댑터](packages/mcp_apps_host_flutter/CHANGELOG.md))에 적습니다.
-- 구현 기준: MCP Apps 스펙 2026-01-26.
+- It follows Semantic Versioning (SemVer). During 0.x, the API may change in a minor version, and any change is noted in each package's `CHANGELOG.md` ([core](packages/mcp_apps_host/CHANGELOG.md), [adapter](packages/mcp_apps_host_flutter/CHANGELOG.md)).
+- Implementation baseline: MCP Apps spec 2026-01-26.
 
-## 개발·기여
+## Development and contributing
 
 ```bash
 sh tool/test_all.sh
 ```
 
-두 패키지의 `pub get`, 분석, 테스트를 순서대로 돌립니다(코어 54개, 어댑터 8개). 필요한 것은 Dart/Flutter SDK와 `pub get`용 네트워크입니다. 테스트 자체는 키·네트워크가 필요 없습니다.
+It runs `pub get`, analysis and tests for both packages in order (54 core tests, 8 adapter tests). You need the Dart/Flutter SDK and network for `pub get`. The tests themselves need no key or network.
 
-![코어 테스트 54개 통과](docs/images/04-core-tests.png)
+![54 core tests pass](docs/images/04-core-tests.png)
 
-*코어 테스트 요약. WebView 없이 핸드셰이크·대기열·정책·CSP가 검증됩니다.*
+*The core test summary. The handshake, queue, policy and CSP are verified without a WebView.*
 
-이슈는 GitHub Issues로 받습니다. 보안 문제는 [SECURITY.md](SECURITY.md)를 따릅니다.
+Issues go through GitHub Issues. For security problems, follow [SECURITY.md](SECURITY.md).
 
-## 더 알아보기
+## Learn more
 
-- MCP Apps 스펙과 SDK: https://github.com/modelcontextprotocol/ext-apps (2026-11-10 확인)
+- MCP Apps spec and SDK: https://github.com/modelcontextprotocol/ext-apps (checked 2026-11-10)
 - `webview_flutter`: https://pub.dev/packages/webview_flutter
 - `mcp_dart`: https://pub.dev/packages/mcp_dart
 
-## 라이선스
+## License
 
-MIT. 메서드 이름 17개 목록은 `@modelcontextprotocol/ext-apps` 2.0.4의 `schema.json`에서 사실만 옮긴 것이며(코드 복사 없음), 스펙은 위 저장소(2026-11-10 확인)를 따릅니다.
+MIT. The list of 17 method names was copied only as facts from the `schema.json` of `@modelcontextprotocol/ext-apps` 2.0.4 (no code copied), and the spec follows the repository above (checked 2026-11-10).
