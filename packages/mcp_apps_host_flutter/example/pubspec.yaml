@@ -1,0 +1,19 @@
+name: mcp_apps_host_flutter_example
+description: Example app for mcp_apps_host_flutter with an in-memory MCP server.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.8.0
+  flutter: ">=3.32.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  mcp_apps_host: ^0.1.0
+  mcp_apps_host_flutter:
+    path: ../
+
+dependency_overrides:
+  mcp_apps_host:
+    path: ../../mcp_apps_host

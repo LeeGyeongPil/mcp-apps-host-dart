@@ -1,0 +1,26 @@
+name: mcp_apps_host_flutter
+description: Flutter widget that shows MCP Apps (ui:// views) in a WebView, on top of mcp_apps_host - handshake, tool-call approval, CSP and navigation lock.
+version: 0.1.0
+repository: https://github.com/LeeGyeongPil/mcp-apps-host-dart
+issue_tracker: https://github.com/LeeGyeongPil/mcp-apps-host-dart/issues
+topics:
+  - mcp
+  - flutter
+  - webview
+  - json-rpc
+
+environment:
+  sdk: ^3.8.0
+  flutter: ">=3.32.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  mcp_apps_host: ^0.1.0
+  webview_flutter: ^4.13.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  lints: ^5.1.1
+  webview_flutter_platform_interface: ^2.14.0

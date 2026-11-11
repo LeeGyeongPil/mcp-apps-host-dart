@@ -1,0 +1,5 @@
+# Inside this repository the core package is used from its folder.
+# pub.dev ignores this file when publishing.
+dependency_overrides:
+  mcp_apps_host:
+    path: ../mcp_apps_host
