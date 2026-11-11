@@ -1,0 +1,19 @@
+# No keys or models needed: everything runs against in-memory fakes and a fake WebViewPlatform.
+name: ci
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "17 3 * * 1"   # weekly: catch SDK or dependency changes that break the build
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.32.4"
+          channel: stable
+          cache: true
+      - run: sh tool/test_all.sh
