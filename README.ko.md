@@ -2,7 +2,7 @@
 
 [English](README.md) | **한국어**
 
-MCP 서버의 도구가 내려 주는 작은 HTML 화면(MCP Apps, `ui://` 리소스)을 Flutter 앱의 WebView 안에 띄울 때 필요한 호스트 쪽 일(인사, 대기열, 도구 호출 권한, CSP)을 대신해 주는 Dart 패키지입니다.
+MCP 서버의 도구가 내려 주는 작은 HTML 화면(MCP Apps, `ui://` 리소스)을 Flutter 앱의 WebView 안에 띄울 때 필요한 호스트 쪽 일(인사, 대기열, 도구 호출 권한, CSP)을 대신해 주는 Dart 패키지입니다. 상태: 0.1.1, 아직 pub.dev에 올리지 않았고 가짜 객체로만 검증했습니다(CI에 실제 WebView 없음, [한계](#한계) 참고). 설치는 아래의 git 방식을 쓰세요.
 
 ![목 모드 실행 화면 앞부분: 대기열 보류 후 플러시](docs/images/01-mock-run-handshake.png)
 
@@ -230,6 +230,7 @@ flutter run -d macos
 ```
 
 - `flutter create`가 만드는 기본 `test/widget_test.dart`는 이 예제와 맞지 않아 `flutter analyze`가 오류를 냅니다. 지우고(`rm test/widget_test.dart`) 쓰세요.
+- 그래도 `flutter analyze`가 경고 1건(`include_file_not_found`)을 냅니다. 생성된 `analysis_options.yaml`이 `flutter_lints`를 include 하는데 예제는 그 패키지에 의존하지 않기 때문이며 `flutter run`에는 영향이 없습니다. 그 파일의 `include:` 줄을 지우면 사라집니다.
 - macOS에서 실행하려면 Xcode와 CocoaPods가 설치돼 있어야 합니다(`brew install cocoapods`).
 
 실기기·실제 WebView에서는 확인하지 못했습니다([한계](#한계)).

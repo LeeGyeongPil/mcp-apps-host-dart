@@ -1,7 +1,7 @@
 name: mcp_apps_host_flutter_example
 description: Example app for mcp_apps_host_flutter with an in-memory MCP server.
 publish_to: none
-version: 0.1.0
+version: 0.1.1
 
 environment:
   sdk: ^3.8.0

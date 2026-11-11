@@ -2,7 +2,7 @@
 
 **English** | [한국어](README.ko.md)
 
-Host-side bridge for MCP Apps (`ui://` interactive views) in Dart and Flutter. When a tool on an MCP server returns a small HTML view, your app (the host) has to do the work around it: the handshake, a queue, tool-call permissions and CSP. These packages do that work for you. `mcp_apps_host` is pure Dart (handshake, queue until `initialized`, tool-call permission policy, spec default CSP, WebView `postMessage` shims). `mcp_apps_host_flutter` is a thin `webview_flutter` widget, `McpAppView`. The official host SDK is TypeScript-only, so this fills the Dart/Flutter gap. Status: 0.1.0, not on pub.dev yet, verified with fakes only (no real WebView in CI, see [Limits](#limits)). Install from git, see below.
+Host-side bridge for MCP Apps (`ui://` interactive views) in Dart and Flutter. When a tool on an MCP server returns a small HTML view, your app (the host) has to do the work around it: the handshake, a queue, tool-call permissions and CSP. These packages do that work for you. `mcp_apps_host` is pure Dart (handshake, queue until `initialized`, tool-call permission policy, spec default CSP, WebView `postMessage` shims). `mcp_apps_host_flutter` is a thin `webview_flutter` widget, `McpAppView`. The official host SDK is TypeScript-only, so this fills the Dart/Flutter gap. Status: 0.1.1, not on pub.dev yet, verified with fakes only (no real WebView in CI, see [Limits](#limits)). Install from git, see below.
 
 ![First part of the mock-mode run: queue hold, then flush](docs/images/01-mock-run-handshake.png)
 
@@ -230,6 +230,7 @@ flutter run -d macos
 ```
 
 - The default `test/widget_test.dart` that `flutter create` makes does not match this example, and `flutter analyze` reports an error. Delete it (`rm test/widget_test.dart`) before use.
+- After that, `flutter analyze` still shows one warning (`include_file_not_found`) because the generated `analysis_options.yaml` includes `flutter_lints`, which the example does not depend on. It does not affect `flutter run`. Delete the `include:` line in that file to silence it.
 - To run on macOS you need Xcode and CocoaPods (`brew install cocoapods`).
 
 It has not been checked on a real device or a real WebView ([Limits](#limits)).
