@@ -2,7 +2,7 @@
 
 [English](README.md) | **한국어**
 
-MCP 서버의 도구가 내려 주는 작은 HTML 화면(MCP Apps, `ui://` 리소스)을 Flutter 앱의 WebView 안에 띄울 때 필요한 호스트 쪽 일(인사, 대기열, 도구 호출 권한, CSP)을 대신해 주는 Dart 패키지입니다. 상태: 0.1.1, 아직 pub.dev에 올리지 않았고 가짜 객체로만 검증했습니다(CI에 실제 WebView 없음, [한계](#한계) 참고). 설치는 아래의 git 방식을 쓰세요.
+MCP 서버의 도구가 내려 주는 작은 HTML 화면(MCP Apps, `ui://` 리소스)을 Flutter 앱의 WebView 안에 띄울 때 필요한 호스트 쪽 일(인사, 대기열, 도구 호출 권한, CSP)을 대신해 주는 Dart 패키지입니다. 상태: 0.2.0, 아직 pub.dev에 올리지 않았고 가짜 객체로만 검증했습니다(CI에 실제 WebView 없음, [한계](#한계) 참고). 설치는 아래의 git 방식을 쓰세요.
 
 ![목 모드 실행 화면 앞부분: 대기열 보류 후 플러시](docs/images/01-mock-run-handshake.png)
 
@@ -23,7 +23,7 @@ MCP 서버의 도구는 글자 대신 작은 HTML 화면을 돌려줄 수 있습
 
 ## 설치
 
-아직 pub.dev에 올라가 있지 않아 git으로 설치합니다. 어댑터가 코어를 pub.dev 버전(`^0.1.0`)으로 요구하므로, git으로 쓰는 동안에는 `dependency_overrides`로 코어 출처를 같게 맞춰야 합니다.
+아직 pub.dev에 올라가 있지 않아 git으로 설치합니다. 어댑터가 코어를 pub.dev 버전(`^0.2.0`)으로 요구하므로, git으로 쓰는 동안에는 `dependency_overrides`로 코어 출처를 같게 맞춰야 합니다.
 
 ```yaml
 dependencies:
@@ -193,7 +193,7 @@ Flutter 어댑터 `package:mcp_apps_host_flutter/mcp_apps_host_flutter.dart`:
 | `McpAppView` | WebView 위젯. 브리지·CSP·이동 잠금을 묶음 | `server`, `html`, `hostInfo`, `csp`, `policy`, 핸들러들, `onBridgeReady`, `initialHeight`(300), `maxHeight`(800), `baseUrl`, `controller` | 위젯 |
 | `WebViewViewTransport` | `webview_flutter`용 `ViewTransport` | `controller`, `channel` | 인스턴스 |
 | `hostContextOf` | 테마·플랫폼·안전 영역·언어를 `MediaQuery`에서 읽어 `HostContext` 생성 | `BuildContext`, `maxHeight` | `HostContext` |
-| `showToolApprovalDialog` / `ToolApprovalDialog` | 기본 승인 대화상자(도구 이름·인자) | `BuildContext`, `ToolApprovalRequest` | `Future<bool>` |
+| `showToolApprovalDialog` / `ToolApprovalDialog` | 기본 승인 대화상자(도구 이름·인자, 영어·한국어 문구) | `BuildContext`, `ToolApprovalRequest`, 선택 `labels`, `locale` | `Future<bool>` |
 
 ## 사용 예
 
@@ -217,6 +217,12 @@ McpAppView(
 (이 조각은 위젯 테스트 `mcp_app_view_test.dart`가 같은 방식으로 실행합니다. 실제 WebView에서의 렌더링은 확인하지 않았습니다. [한계](#한계) 참고.)
 
 승인 모드: `never`(묻지 않음, 목록·visibility는 계속 적용), `perCall`(매번), `perToolPerSession`(도구마다 한 번), `perSession`(한 번). visibility 검사는 스펙의 MUST라 항상 적용되고, 사용자 승인은 그 위에 얹는 선택 층입니다. 동시에 도착한 호출은 질문 하나를 공유하고, 승인만 기억합니다. 거부는 기억하지 않아 다음 호출에서 다시 묻습니다.
+
+승인 대화상자 언어: 기본 대화상자는 앱 로케일을 따릅니다(`ko`면 한국어, 그 외 영어). `locale: 'ko-KR'` 또는 직접 만든 `labels: ToolApprovalLabels(title: ..., allow: ..., deny: ...)`로 정할 수 있고, `labels`가 `locale`보다 우선합니다. 자동 감지로 한국어가 나오려면 앱의 `supportedLocales`에 `ko`가 있고 `flutter_localizations` 위임자가 있어야 하며, 없으면 영어 그대로입니다(또는 `locale`/`labels`로 직접 지정하세요).
+
+```dart
+showToolApprovalDialog(context, request, locale: 'ko');
+```
 
 화면을 떼기 전에는 `onBridgeReady`로 받은 `bridge.teardown`을 먼저 부르고, html·server·csp·policy를 바꾸려면 새 `key`를 주세요.
 
@@ -279,9 +285,9 @@ dart run example/mcp_apps_host_example.dart --server http://localhost:<port>/mcp
 sh tool/test_all.sh
 ```
 
-두 패키지의 `pub get`, 분석, 테스트를 순서대로 돌립니다(코어 54개, 어댑터 8개). 필요한 것은 Dart/Flutter SDK와 `pub get`용 네트워크입니다. 테스트 자체는 키·네트워크가 필요 없습니다.
+두 패키지의 `pub get`, 분석, 테스트를 순서대로 돌립니다. 필요한 것은 Dart/Flutter SDK와 `pub get`용 네트워크입니다. 테스트 자체는 키·네트워크가 필요 없습니다.
 
-![코어 테스트 54개 통과](docs/images/04-core-tests.png)
+![코어 테스트 통과](docs/images/04-core-tests.png)
 
 *코어 테스트 요약. WebView 없이 핸드셰이크·대기열·정책·CSP가 검증됩니다.*
 

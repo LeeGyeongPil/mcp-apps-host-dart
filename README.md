@@ -2,7 +2,7 @@
 
 **English** | [한국어](README.ko.md)
 
-Host-side bridge for MCP Apps (`ui://` interactive views) in Dart and Flutter. When a tool on an MCP server returns a small HTML view, your app (the host) has to do the work around it: the handshake, a queue, tool-call permissions and CSP. These packages do that work for you. `mcp_apps_host` is pure Dart (handshake, queue until `initialized`, tool-call permission policy, spec default CSP, WebView `postMessage` shims). `mcp_apps_host_flutter` is a thin `webview_flutter` widget, `McpAppView`. The official host SDK is TypeScript-only, so this fills the Dart/Flutter gap. Status: 0.1.1, not on pub.dev yet, verified with fakes only (no real WebView in CI, see [Limits](#limits)). Install from git, see below.
+Host-side bridge for MCP Apps (`ui://` interactive views) in Dart and Flutter. When a tool on an MCP server returns a small HTML view, your app (the host) has to do the work around it: the handshake, a queue, tool-call permissions and CSP. These packages do that work for you. `mcp_apps_host` is pure Dart (handshake, queue until `initialized`, tool-call permission policy, spec default CSP, WebView `postMessage` shims). `mcp_apps_host_flutter` is a thin `webview_flutter` widget, `McpAppView`. The official host SDK is TypeScript-only, so this fills the Dart/Flutter gap. Status: 0.2.0, not on pub.dev yet, verified with fakes only (no real WebView in CI, see [Limits](#limits)). Install from git, see below.
 
 ![First part of the mock-mode run: queue hold, then flush](docs/images/01-mock-run-handshake.png)
 
@@ -23,7 +23,7 @@ The official host SDK (`@modelcontextprotocol/ext-apps`) is for TypeScript and b
 
 ## Install
 
-It is not on pub.dev yet, so install it from git. The adapter requires the core at the pub.dev version (`^0.1.0`), so while you use git you must point the core at the same source with `dependency_overrides`.
+It is not on pub.dev yet, so install it from git. The adapter requires the core at the pub.dev version (`^0.2.0`), so while you use git you must point the core at the same source with `dependency_overrides`.
 
 ```yaml
 dependencies:
@@ -193,7 +193,7 @@ Flutter adapter `package:mcp_apps_host_flutter/mcp_apps_host_flutter.dart`:
 | `McpAppView` | WebView widget. Ties together the bridge, CSP and navigation lock | `server`, `html`, `hostInfo`, `csp`, `policy`, handlers, `onBridgeReady`, `initialHeight` (300), `maxHeight` (800), `baseUrl`, `controller` | Widget |
 | `WebViewViewTransport` | `ViewTransport` for `webview_flutter` | `controller`, `channel` | Instance |
 | `hostContextOf` | Build a `HostContext` from `MediaQuery` (theme, platform, safe area, locale) | `BuildContext`, `maxHeight` | `HostContext` |
-| `showToolApprovalDialog` / `ToolApprovalDialog` | Default approval dialog (tool name, arguments) | `BuildContext`, `ToolApprovalRequest` | `Future<bool>` |
+| `showToolApprovalDialog` / `ToolApprovalDialog` | Default approval dialog (tool name, arguments; English or Korean texts) | `BuildContext`, `ToolApprovalRequest`, optional `labels`, `locale` | `Future<bool>` |
 
 ## Usage examples
 
@@ -217,6 +217,12 @@ McpAppView(
 (The widget test `mcp_app_view_test.dart` runs this snippet in the same way. Rendering in a real WebView has not been checked. See [Limits](#limits).)
 
 Approval modes: `never` (never ask; the list and visibility still apply), `perCall` (every call), `perToolPerSession` (once per tool), `perSession` (once). The visibility check is a MUST in the spec, so it always applies, and user approval is an optional layer on top. Calls that arrive at the same time share one question, and only approvals are remembered. Refusals are not remembered, so the next call asks again.
+
+Approval dialog language: the default dialog follows the app locale (Korean when it is `ko`, otherwise English). Pass `locale: 'ko-KR'` or your own `labels: ToolApprovalLabels(title: ..., allow: ..., deny: ...)` to choose it yourself; `labels` wins over `locale`. For auto-detection to give Korean, the app must list `ko` in `supportedLocales` and have a `flutter_localizations` delegate; otherwise the dialog stays English (or set `locale`/`labels` yourself).
+
+```dart
+showToolApprovalDialog(context, request, locale: 'ko');
+```
 
 Before you remove the view, call `bridge.teardown` (received through `onBridgeReady`) first. To change html, server, csp or policy, give it a new `key`.
 
@@ -279,9 +285,9 @@ For example, at the top level of a WebView `window.parent === window`, so if a m
 sh tool/test_all.sh
 ```
 
-It runs `pub get`, analysis and tests for both packages in order (54 core tests, 8 adapter tests). You need the Dart/Flutter SDK and network for `pub get`. The tests themselves need no key or network.
+It runs `pub get`, analysis and tests for both packages in order. You need the Dart/Flutter SDK and network for `pub get`. The tests themselves need no key or network.
 
-![54 core tests pass](docs/images/04-core-tests.png)
+![Core tests pass](docs/images/04-core-tests.png)
 
 *The core test summary. The handshake, queue, policy and CSP are verified without a WebView.*
 
