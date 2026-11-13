@@ -235,8 +235,7 @@ cd packages/mcp_apps_host_flutter/example && flutter create --platforms=macos,io
 flutter run -d macos
 ```
 
-- The default `test/widget_test.dart` that `flutter create` makes does not match this example, and `flutter analyze` reports an error. Delete it (`rm test/widget_test.dart`) before use.
-- After that, `flutter analyze` still shows one warning (`include_file_not_found`) because the generated `analysis_options.yaml` includes `flutter_lints`, which the example does not depend on. It does not affect `flutter run`. Delete the `include:` line in that file to silence it.
+- `flutter create` does not overwrite the `analysis_options.yaml` and `test/widget_test.dart` that already exist, so `flutter analyze` and `flutter test` work right away.
 - To run on macOS you need Xcode and CocoaPods (`brew install cocoapods`).
 
 It has not been checked on a real device or a real WebView ([Limits](#limits)).
@@ -285,7 +284,7 @@ For example, at the top level of a WebView `window.parent === window`, so if a m
 sh tool/test_all.sh
 ```
 
-It runs `pub get`, analysis and tests for both packages in order. You need the Dart/Flutter SDK and network for `pub get`. The tests themselves need no key or network.
+It runs `pub get`, analysis and tests for both packages and the example app in order. Set `PUB_GET_FLAGS=--offline` to skip the network when packages are already cached. You need the Dart/Flutter SDK and network for `pub get`. The tests themselves need no key or network.
 
 ![Core tests pass](docs/images/04-core-tests.png)
 

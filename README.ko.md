@@ -235,8 +235,7 @@ cd packages/mcp_apps_host_flutter/example && flutter create --platforms=macos,io
 flutter run -d macos
 ```
 
-- `flutter create`가 만드는 기본 `test/widget_test.dart`는 이 예제와 맞지 않아 `flutter analyze`가 오류를 냅니다. 지우고(`rm test/widget_test.dart`) 쓰세요.
-- 그래도 `flutter analyze`가 경고 1건(`include_file_not_found`)을 냅니다. 생성된 `analysis_options.yaml`이 `flutter_lints`를 include 하는데 예제는 그 패키지에 의존하지 않기 때문이며 `flutter run`에는 영향이 없습니다. 그 파일의 `include:` 줄을 지우면 사라집니다.
+- `flutter create`는 이미 있는 `analysis_options.yaml`과 `test/widget_test.dart`를 덮어쓰지 않으므로 바로 `flutter analyze`와 `flutter test`가 됩니다.
 - macOS에서 실행하려면 Xcode와 CocoaPods가 설치돼 있어야 합니다(`brew install cocoapods`).
 
 실기기·실제 WebView에서는 확인하지 못했습니다([한계](#한계)).
@@ -285,7 +284,7 @@ dart run example/mcp_apps_host_example.dart --server http://localhost:<port>/mcp
 sh tool/test_all.sh
 ```
 
-두 패키지의 `pub get`, 분석, 테스트를 순서대로 돌립니다. 필요한 것은 Dart/Flutter SDK와 `pub get`용 네트워크입니다. 테스트 자체는 키·네트워크가 필요 없습니다.
+두 패키지와 예제 앱의 `pub get`, 분석, 테스트를 순서대로 돌립니다. 이미 캐시돼 있으면 `PUB_GET_FLAGS=--offline`으로 네트워크 없이 돌릴 수 있습니다. 필요한 것은 Dart/Flutter SDK와 `pub get`용 네트워크입니다. 테스트 자체는 키·네트워크가 필요 없습니다.
 
 ![코어 테스트 통과](docs/images/04-core-tests.png)
 

@@ -17,3 +17,9 @@ dependencies:
 dependency_overrides:
   mcp_apps_host:
     path: ../../mcp_apps_host
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  lints: ^5.1.1
+  webview_flutter_platform_interface: ^2.14.0
