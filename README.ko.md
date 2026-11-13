@@ -2,7 +2,7 @@
 
 [English](README.md) | **한국어**
 
-MCP 서버의 도구가 내려 주는 작은 HTML 화면(MCP Apps, `ui://` 리소스)을 Flutter 앱의 WebView 안에 띄울 때 필요한 호스트 쪽 일(인사, 대기열, 도구 호출 권한, CSP)을 대신해 주는 Dart 패키지입니다. 상태: 0.2.0, 아직 pub.dev에 올리지 않았고 가짜 객체로만 검증했습니다(CI에 실제 WebView 없음, [한계](#한계) 참고). 설치는 아래의 git 방식을 쓰세요.
+MCP 서버의 도구가 내려 주는 작은 HTML 화면(MCP Apps, `ui://` 리소스)을 Flutter 앱의 WebView 안에 띄울 때 필요한 호스트 쪽 일(인사, 대기열, 도구 호출 권한, CSP)을 대신해 주는 Dart 패키지입니다. 상태: 0.2.1, 아직 pub.dev에 올리지 않았고 가짜 객체로만 검증했습니다(CI에 실제 WebView 없음, [한계](#한계) 참고). 설치는 아래의 git 방식을 쓰세요.
 
 ![목 모드 실행 화면 앞부분: 대기열 보류 후 플러시](docs/images/01-mock-run-handshake.png)
 

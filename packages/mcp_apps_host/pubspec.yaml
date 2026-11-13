@@ -1,6 +1,6 @@
 name: mcp_apps_host
 description: Host-side bridge for MCP Apps (ui:// views) in pure Dart - handshake, message queue, tool-call permission policy, default CSP and WebView postMessage shims.
-version: 0.2.0
+version: 0.2.1
 repository: https://github.com/LeeGyeongPil/mcp-apps-host-dart
 issue_tracker: https://github.com/LeeGyeongPil/mcp-apps-host-dart/issues
 topics:
