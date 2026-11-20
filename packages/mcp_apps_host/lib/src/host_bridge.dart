@@ -297,6 +297,18 @@ class HostBridge {
       tool = _findTool(name);
     }
     final verdict = await policy.evaluate(name, arguments, tool);
+    // The approval may have landed after close()/teardown(): never reach the
+    // server from a closed bridge, whatever the user answered.
+    if (_state == BridgeState.closed) {
+      _record(AuditEntry(
+        kind: 'tools/call',
+        subject: name,
+        decision: Decision.denied,
+        reason: 'bridge closed',
+      ));
+      throw const McpAppsRpcException(
+          -32000, 'Tool call refused: bridge closed');
+    }
     _record(AuditEntry(
       kind: 'tools/call',
       subject: name,

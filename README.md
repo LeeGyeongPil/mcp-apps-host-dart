@@ -270,7 +270,7 @@ For example, at the top level of a WebView `window.parent === window`, so if a m
 - A WebView has no iframe `sandbox` and no opaque origin, so isolation is weaker than in a browser host. A `<meta>` CSP does not support `frame-ancestors` or `sandbox`. This library only "applies the minimum policy the spec requires" and does not guarantee "safe".
 - Draft methods (`ui/download-file`, `request-teardown`) are not supported (`-32601` or an audit log entry only).
 - Windows, Linux and Flutter web are not supported. There is no double-iframe proxy for web hosts either.
-- Three edge cases while an approval is pending (an `approver` question is open) are known limits. (1) If the `approver` callback throws synchronously, that call's pending entry may stay in the internal pending map. (2) If you call `resetSession` while waiting for approval, how the pending question's result applies to the new session is loosely defined. (3) If the user allows after `teardown` has finished while waiting for approval, `callTool` may still run. In your app, close the approval dialog before removing the view, and wrap `approver` so it never throws.
+- Two edge cases while an approval is pending (an `approver` question is open) are known limits. (1) If the `approver` callback throws synchronously, that call's pending entry may stay in the internal pending map. (2) If you call `resetSession` while waiting for approval, how the pending question's result applies to the new session is loosely defined. In your app, close the approval dialog before removing the view, and wrap `approver` so it never throws.
 - Versions checked: Dart 3.8.1, Flutter 3.32.4, webview_flutter 4.13.1, mcp_dart 2.4.3 (webview_flutter 4.14.x needs Flutter 3.38 or newer).
 
 ## Versions and compatibility

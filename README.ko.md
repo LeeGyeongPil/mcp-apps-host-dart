@@ -270,7 +270,7 @@ dart run example/mcp_apps_host_example.dart --server http://localhost:<port>/mcp
 - WebView에는 iframe `sandbox`와 불투명 origin이 없어 브라우저 호스트보다 격리가 약합니다. `<meta>` CSP는 `frame-ancestors`, `sandbox`를 지원하지 않습니다. 이 라이브러리는 "스펙이 요구하는 최소 정책을 적용"할 뿐 "안전하다"고 보장하지 않습니다.
 - 초안 메서드(`ui/download-file`, `request-teardown`)는 지원하지 않습니다(`-32601` 또는 감사 로그만).
 - Windows, Linux, Flutter 웹은 지원하지 않습니다. 웹 호스트용 이중 iframe 프록시도 없습니다.
-- 승인 대기(`approver` 질문이 떠 있는) 상태의 경계 사례 세 가지는 알려진 한계입니다. (1) `approver` 콜백이 동기 예외를 던지면 그 호출의 대기 항목이 내부 대기 맵에 남을 수 있습니다. (2) 승인을 기다리는 중 `resetSession`을 부르면 대기 중인 질문 결과가 새 세션에 어떻게 반영되는지 정의가 느슨합니다. (3) 승인을 기다리는 중 `teardown`이 끝난 뒤 사용자가 허용하면 `callTool`이 그대로 실행될 수 있습니다. 앱 쪽에서는 화면을 떼기 전에 승인 창을 닫고, `approver`는 예외를 던지지 않게 감싸 두세요.
+- 승인 대기(`approver` 질문이 떠 있는) 상태의 경계 사례 두 가지는 알려진 한계입니다. (1) `approver` 콜백이 동기 예외를 던지면 그 호출의 대기 항목이 내부 대기 맵에 남을 수 있습니다. (2) 승인을 기다리는 중 `resetSession`을 부르면 대기 중인 질문 결과가 새 세션에 어떻게 반영되는지 정의가 느슨합니다. 앱 쪽에서는 화면을 떼기 전에 승인 창을 닫고, `approver`는 예외를 던지지 않게 감싸 두세요.
 - 확인한 버전: Dart 3.8.1, Flutter 3.32.4, webview_flutter 4.13.1, mcp_dart 2.4.3 (webview_flutter 4.14.x는 Flutter 3.38 이상이 필요합니다).
 
 ## 버전·호환성

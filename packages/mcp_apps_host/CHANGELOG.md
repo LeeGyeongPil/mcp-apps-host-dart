@@ -3,6 +3,12 @@
 All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.2] - 2026-11-21
+
+### Fixed
+
+- A tool call whose approval landed after `close()` or `teardown()` no longer reaches the server; it is refused with `-32000` and audited as denied (`bridge closed`).
+
 ## [0.2.1] - 2026-11-13
 
 ### Changed

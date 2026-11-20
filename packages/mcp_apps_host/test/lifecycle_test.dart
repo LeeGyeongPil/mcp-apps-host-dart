@@ -138,4 +138,43 @@ void main() {
         await r.view.request('resources/read', {'uri': 'ui://missing'});
     expect(codeOf(answer), -32002);
   });
+
+  for (final how in ['close', 'teardown']) {
+    test('approval that lands after $how does not reach the server', () async {
+      final pipe = MemoryPipe();
+      final server = FakeMcpServer();
+      final pending = Completer<bool>();
+      final bridge = HostBridge(
+        transport: pipe.hostSide,
+        server: server,
+        hostInfo: const HostInfo(name: 't', version: '1'),
+        hostContext: const HostContext(),
+        policy: ToolCallPolicy(
+            mode: ApprovalMode.perCall, approver: (_) => pending.future),
+      );
+      final view = ScriptedView(pipe.viewSide);
+      await view.initialize();
+      view.sendInitialized();
+      await view.barrier();
+
+      final answer = view.request('tools/call', {'name': 'refresh_data'});
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      if (how == 'close') {
+        await bridge.close();
+      } else {
+        await bridge.teardown('done');
+      }
+      pending.complete(true);
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      unawaited(answer.then((_) {}, onError: (_) {}));
+
+      expect(server.calls, isEmpty);
+      expect(bridge.audit.last.decision, Decision.denied);
+      expect(bridge.audit.last.subject, 'refresh_data');
+      expect(
+          bridge.audit.where((e) =>
+              e.subject == 'refresh_data' && e.decision == Decision.allowed),
+          isEmpty);
+    });
+  }
 }
