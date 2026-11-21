@@ -3,6 +3,14 @@
 All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+## [0.2.3] - 2026-11-21
+
+### Fixed
+
+- A synchronous throw from the `approver` callback no longer leaves a failed entry in the pending map; the next call with the same key asks again (`perToolPerSession`, `perSession`).
+
 ## [0.2.2] - 2026-11-21
 
 ### Fixed
