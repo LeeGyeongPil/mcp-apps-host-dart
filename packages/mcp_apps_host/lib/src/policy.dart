@@ -87,7 +87,8 @@ class ToolCallPolicy {
   Future<bool> _ask(
       String key, String name, Map<String, Object?> arguments) async {
     try {
-      final ok = await approver!(ToolApprovalRequest(name, arguments));
+      final ok = await Future.sync(
+          () => approver!(ToolApprovalRequest(name, arguments)));
       if (ok) {
         if (mode == ApprovalMode.perToolPerSession) _approvedTools.add(name);
         if (mode == ApprovalMode.perSession) _sessionApproved = true;

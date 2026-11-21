@@ -192,5 +192,31 @@ void main() {
       await Future.wait([r.call('refresh_data'), r.call('refresh_data')]);
       expect(r.asked, 2);
     });
+
+    for (final mode in [
+      ApprovalMode.perToolPerSession,
+      ApprovalMode.perSession
+    ]) {
+      test('$mode: a synchronous throw from approver is not remembered',
+          () async {
+        var asked = 0;
+        final policy = ToolCallPolicy(
+          mode: mode,
+          approver: (request) {
+            asked++;
+            if (asked == 1) throw StateError('dialog failed');
+            return Future.value(true);
+          },
+        );
+        final tool = <String, Object?>{'name': 'refresh_data'};
+        await expectLater(
+            policy.evaluate('refresh_data', {}, tool), throwsStateError);
+        for (var i = 0; i < 2; i++) {
+          final verdict = await policy.evaluate('refresh_data', {}, tool);
+          expect(verdict.allowed, isTrue);
+        }
+        expect(asked, 2); // the throw, then one yes that is remembered
+      });
+    }
   });
 }
